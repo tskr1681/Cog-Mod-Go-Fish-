@@ -1,0 +1,130 @@
+;;; Model of go fish - general stradegy
+;;;
+
+(add-dm
+    (goal isa decision state start)
+    (goal2 isa round state wait)
+    (p1 isa player-order current player1 next player2 end false)
+    (p2 isa player-order current player2 next player3 end false)
+    (p3 isa player-order current player3 next player1 end true)
+)
+
+(set-all-baselevels -100 10) ;; time offset and number of references
+
+(p start-first ;;;;if the model is the first to play
+    =goal>
+        isa decision
+        state start-first
+        card_ask =card;;;;random select a card based on vision or the first card
+        current_player self
+        opponent_player =player;;; random select or select the person to right?
+    =visual;;;?
+==>
+    =goal>
+        isa decision
+        state start ;;;change the status to normal round
+    +action> ;;;
+        isa decision
+        card_ask =card
+        opponent_player =player
+        
+)
+
+(p start ;;; if the model is not the first to play
+    =goal>
+        isa decision
+        state start
+    =action>
+        isa decision
+        state =state ;;;the result of the request gofish - succeed - wait(and memorize)
+        current_player =player1
+        opponent_player =player2
+        card_ask =card1
+        card_get =card2
+==>
+    =goal>
+        isa decision
+        state =state
+        card_ask =card1
+        card_get =card2
+        current_player =player1
+        opponent_player =player2
+    +retrieval>
+        isa player-order
+        current =player
+    -action>
+)
+
+(p succeed_round ;;;stradegy when told succeed
+    =goal>
+        isa decision
+        state succeed
+        opponent_player =player
+        card_ask =card
+    =retrieval>
+        isa player-order
+        next =next_player
+        -end true ;;;end of the round
+==>
+    =goal>
+        isa decision
+        state start
+        opponent_player =next_player
+    +action>
+        isa decision
+        card_ask =card
+        opponent_player =next_player
+    -retrieval>
+    ;;;;update the cards you get????
+)
+
+(p gofish ;;;stradegy when go fish
+    =goal>
+        isa decision
+        state gofish
+==>
+    =goal>
+        isa decision
+        state wait
+    +action>
+        ;;; update the card_get into your cards???
+        ;;;isa round ;;;interacte and get information?
+)
+
+(p wait ;;;stradegy when it's not your turn
+    =goal>
+        isa decision
+        state wait
+    =action>
+        isa round
+        current_player =current_player ;;; not self definitly
+        opponent_player =opponent_player
+        card =card
+        state =state ;;;succeed-gofish write into round? remember the opposite relation?
+==>
+    +imaginal>
+        isa sequence
+        card =card
+        player =current_player
+        ;;;;conservative stradegy - also remember the negative relationship (who doesn't habe which)
+    -action>
+)
+
+
+(p asked_card ;;;if succeed asked card update your cards (?)
+    =goal>
+        isa round
+        state succeed
+        opponent_player self ;;;???? map between self and real player identifier required
+==>
+    +action>
+        ;;;update cards????
+
+)
+
+
+
+
+
+(goal-focus goal)
+
