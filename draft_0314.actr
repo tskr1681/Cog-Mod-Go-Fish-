@@ -1,0 +1,428 @@
+;;; Model of go fish - general stradegy
+;;;
+
+(add-dm
+    (goal isa state_control state start_state)
+    (action isa decision current_player self opponent_player player1 state first_start set false)
+    (p1 isa player-order current player1 next player2 end false) ;;;player 1, 2, 3 is mapped to different player in swfit
+    (p2 isa player-order current player2 next player3 end false)
+    (p3 isa player-order current player3 next player1 end true)
+)
+
+(set-all-baselevels -100 10) ;; time offset and number of references
+ 
+(p start-retrieve-state-first ;;; retrive state from action module
+	=goal>
+		isa state_control
+		state start_state
+==>
+	+action>
+		isa decision
+		state first_start
+	=goal>
+		state retrieving
+)
+
+;;;state list
+;;;start --- of a new turn(not the first round)
+;;;wait/memorize ---it's not your turn. Wait and memorize
+;;;ask --- ask for cards
+;;succeed
+;;gofish
+;;checking - card_retrieved , ;;; check in external memory whether certain card is at your hand
+
+
+(p wait-memorize ;;;stradegy when it's not your turn
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+        isa decision
+        state wait_memorize
+        current_player =current_player ;;; not self definitly
+        opponent_player =opponent_player ;;; can be self
+        card_ask =card;;; card asked
+        state_round =state ;;;succeed-gofish 
+        ;;; remember the opposite relation?
+==>
+	=goal>
+		state retrieving
+    +imaginal>
+        isa sequence
+        card =card
+        player =current_player
+        ;;;;conservative stradegy - also remember the negative relationship 
+	+action>
+		isa decision
+		state wait_memorize
+)
+
+
+
+(p succeed_round_A ;;;stradegy when told succeed
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+        isa decision
+        state succeed
+        opponent_player =opponent_player ;;; 
+        card_ask =card;;; card asked
+        set false ;;; the card is not a set yet
+    ?retrieval>
+        state  free
+==>
+    +goal>
+        isa succeed_round
+        state next
+        card_ask =card ;;; temporarily stored for convenience
+    +retrieval>
+    	isa player-order
+    	current =player
+)
+
+(p succeed_round_B ;;;stradegy when told succeed
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+        isa decision
+        state succeed
+        set true ;;; the card is a set
+==>
+    =goal>
+        isa state_control
+        state start ;;; start a new decision
+)
+
+
+(p succeed_round_next
+	=goal>
+		isa succeed_round
+		state next
+		card_ask =card
+	=retrieval>
+		isa player-order
+		next =player
+		-end true
+==>
+	+goal>
+		isa state_control
+		state retrieving
+    +imaginal>
+        isa exposed_cards
+        card =card
+        player =player
+	+action>
+		isa decision
+		state ask 
+		opponent_player =player
+		card_ask =card
+)
+
+(p succeed_round_end_A ;;;stradegy when told succeed
+	=goal>
+		isa succeed_round
+		state next
+		card_ask =card
+    =retrieval>
+    	isa player-order
+    	end true ;;; all the players have been asked and still no set
+==>
+	+goal>
+		isa state_control
+		state start
+    -retrieval>
+)
+
+
+(p gofishA ;;;stradegy when go fish
+	=goal>
+		isa state_control
+		state retrieving
+    =action>
+        isa decision
+        state gofish
+        opponent_player =player ;; first time asked the card
+        card_asked =card
+    ?retrieval>
+        state  free
+==>
+	=goal>
+		isa state_control
+		state retrieving
+    +imaginal>
+        isa negative_sequence
+        card =card
+        player =player
+        ;;;;conservative stradegy - also remember the negative relationship 
+	+action>
+		isa decision
+		state wait_memorize
+)
+
+
+(p check_card ;;; check what card you have
+	=goal>
+		isa state_control
+		state retrieving
+	=action>
+ 		isa decision
+		state start
+==>
+	+action>
+		isa decision
+		state checking
+		card_deck first
+		stradegy g1
+)
+
+(p start_general1 ;;; a new turn for the player with previous info
+;;; ask for exposed cards
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+    	isa decision
+    	state checking
+    	card_deck =card;;; the card_deck will be updated after each checking
+    	stradegy g1
+==>
+    +goal>
+        isa general_stradegy1
+        state start
+    +retrieval>
+        isa exposed_cards ;;;recall exposed cards
+        card =card
+)
+
+(p start_general1_check_cards-f
+;;; ask for exposed cards
+    =goal>
+        isa general_stradegy1
+        state start
+    =action>
+    	isa decision
+    	state checking
+    	card_deck =card
+    	stradegy g1
+    ?retrieval>
+        state  error ;;; this card is not in memory
+==>
+	+goal>
+		isa state_control
+		state retrieving
+	+action>
+		isa decision
+		state checking
+		card_deck =card 
+		stradegy g1 ;;;check the next card (written in swift)
+)
+
+(p start_g1_success_check_cardA
+    =goal>
+        isa general_stradegy1
+        state start
+    =action>
+    	isa decision
+    	state checking
+    	card_deck =card
+    	stradegy g1
+    =retrieval>
+        isa exposed_cards
+        card =card
+        -player player3
+        player =player
+==>
+	=goal>
+        isa general_stradegy1
+        state next
+        card =card
+	+retrieval>
+    	isa player-order
+    	current =player
+)
+
+(p start_g1_success_check_cardA_next
+    =goal>
+        isa general_stradegy1
+        state next
+        card =card
+    =retrieval>
+        isa player-order
+        next =player
+        ;;;-end true
+==>
+	+goal>
+        isa state_control
+        state retrieving
+    +imaginal>
+        isa exposed_cards
+        card =card
+        player =player        
+	+action>
+		isa decision
+		state ask 
+		opponent_player =player
+		card_ask =card
+		stradegy g1
+)
+
+;;;result :succeed/gofish
+
+(p g1_failure ;;; no cards in deck can be recalled from memory
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+    	isa decision
+    	state checking_failed 
+    	stradegy g1;; sent back by swift
+==>
+    +goal>
+        isa general_stradegy2
+        state start
+)
+
+(p start_general2 ;;;switch the second stradegy
+	=goal>
+		isa general_stradegy2
+		state start
+==>
+	=goal>
+		isa state_control
+		state retrieving
+	+action>
+		isa decision
+		state checking
+		card_deck first
+		stradegy g2
+)
+
+(p g2-retrieve-memory
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+    	isa decision
+    	state checking
+    	card_deck =card ;;; retrieve the first card
+    	stradegy g2
+==>
+    +goal>
+        isa general_stradegy2
+        state second
+        card =card
+    +retrieval>
+        isa sequence ;;;recall cards from sequences
+        card =card
+)
+
+
+(p g2-retrieve-memory-f
+	=goal>
+		isa general_stradegy2
+		state second
+	?retrieval>
+		state  error 
+==>
+	=goal>
+		isa state_control
+		state retrieving
+	+action>
+		isa decision
+		state checking
+		card_deck card =card
+		stradegy g2
+)
+
+
+(p g2-retrieve-memory-s1
+	=goal>
+		isa general_stradegy2
+		state second
+	=retrieval>
+        isa sequence ;;;recall cards from sequences
+        card =card
+        player =player
+==>
+	=goal>
+		isa general_stradegy2
+		state next
+		card =card
+        player =player
+)
+
+(p g2-retrieve-memory-s2
+	=goal>
+		isa general_stradegy2
+		state next
+		card =card
+        player =player
+==>
+	+goal>
+		isa state_control
+		state retrieving
+    +imaginal>
+    	isa exposed_cards ;;; you will ask it next, it is a exposed card for you
+    	card =card
+    	player =player ;;;should not put the current player here
+	+action>
+		isa decision
+		state ask
+		card_ask =card
+		opponent_player =player		
+)
+
+(p general2-failure ;;;can't remeber who asked what card  before
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+    	isa decision
+    	state checking_failed 
+    	stradegy g2;; sent back by swift
+==>
+    +goal>
+        isa special_stradegy
+        state select
+)
+
+(p special-stradegy-choose-a ;;; slect aggressive or conservative stradegy
+	=goal>
+        isa special_stradegy
+        state select
+;;;
+;;; to be added
+;;;
+==>
+	+goal>
+        isa aggressive_stradegy
+        state start
+)
+
+(p special-stradegy-choose-c ;;; slect aggressive or conservative stradegy
+	=goal>
+        isa special_stradegy
+        state select
+;;;
+;;; to be added
+;;;
+==>
+	+goal>
+        isa conservative_stradegy
+        state start
+)
+
+(p aggressive-stradegy-start
+	=goal>
+        isa aggressive_stradegy
+        state start
+==>
+
+
+
+)
+
+(goal-focus goal)
+
