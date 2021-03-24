@@ -226,6 +226,92 @@ class ViewController: UIViewController {
 //        iv1.isUserInteractionEnabled = true
 //        iv1.transform = iv1.transform.rotated(by: CGFloat(Double.pi / 2))
 //        p2SV.addArrangedSubview(iv21)
+        func checkingHand(requestedCard:String, asker:Player) -> String {
+        ##input is either : "First", "Multiple", or a specific card
+        var result: String = ""
+        if(requestedCard == "first"){
+            result  = asker.cards[0]
+        }
+        else if(requestedCard == "multiple"){
+            if(asker.countQ > 1){
+                result = "qC"
+            }
+            else if(asker.countK > 1){
+                result = "kC"
+            }
+            else if(asker.countJ > 1){
+                result = "jC"
+            }
+            else if(asker.countA > 1){
+                result = "aC"
+            }
+            else if(asker.count2 > 1){
+                result = "2H"
+            }else if(asker.count3 > 1){
+                result = "3H"
+            }
+            else if(asker.count4 > 1){
+                result = "4H"
+            }
+            else if(asker.count5 > 1){
+                result = "5H"
+            }
+            else if(asker.count6 > 1){
+                result = "6H"
+            }
+            else if(asker.count7 > 1){
+                result = "7H"
+            }
+            else if(asker.count8 > 1){
+                result = "8H"
+            }
+            else if(asker.count9 > 1){
+                result = "9H"
+            }
+            else if(asker.count10 > 1){
+                result = "10H"
+            }
+            else{
+                result = "multiple_failed"
+            }
+        }
+        else{
+            var z:Int = -1
+            result = "failed"
+            let reqCardPrefix = String(Array(requestedCard)[0])
+            for i in 0..<asker.cards.count{
+                let a = String(Array(asker.cards[i])[0])
+                if(requestedCard.hasPrefix(a)){
+                    z = i
+                }
+            }
+            if(z > -1){
+                if(z+1 <= asker.cards.count){
+                    z += 1
+                    if(asker.cards[z].hasPrefix(reqCardPrefix)){
+                        if(z+1 <= asker.cards.count){
+                            z += 1
+                            if(asker.cards[z].hasPrefix(reqCardPrefix)){
+                                if(z+1 <= asker.cards.count){
+                                    z += 1
+                                    result = asker.cards[z]
+                                }
+                                else{
+                                    result = "failed"
+                                }
+                            }
+                        }
+                        else{
+                            result = "failed"
+                        }
+                    }
+                }
+                else{
+                    result = "failed"
+                }
+            }
+        }
+        return result
         gameNowBegan = true
         //distribute the cards to each player
         allocateCards()
@@ -433,6 +519,7 @@ class ViewController: UIViewController {
 //                }
                 giver.icon?.setBackgroundImage(UIImage(systemName: "person.circle"), for: .normal)
             }
+            
             //add card from deck to user's hand
             else if(asker.playerIsHuman){
                 goFishBtnOutlet.isHidden = true
@@ -476,6 +563,7 @@ class ViewController: UIViewController {
             
         }
     }
+    
     //function to arrange cards in hand in ascending order
     func sortHand(hand:[String]) -> [String]{
         let sorterdHand = hand.sorted { $0.compare($1) == ComparisonResult.orderedAscending }
