@@ -2,12 +2,12 @@
 //  ViewController.swift
 //  GoFish
 //
-//  Created by Sai krishna reddy on 06/03/21.
+//  Created by Guru Karthik on 09/03/21.
 //
 
 //framework which provides the classes, functons needed for user interactions, user interface and others
 import UIKit
-
+import Foundation
 //class which holds the all the attributes needed for the player
 class Player{
     //array of cards the player has
@@ -35,11 +35,15 @@ class Player{
     var leftPlayer:Player? = nil
     //placer icon
     var icon:UIButton? = nil
+    var isOutOfGame:Bool = false
 }
 
 class ViewController: UIViewController {
 
 //player 4 button
+    let model = Model()
+    
+    
     
     @IBAction func P4Btn(_ sender: UIButton) {
         giver = players[3]
@@ -68,7 +72,7 @@ class ViewController: UIViewController {
         players[1].icon?.setBackgroundImage(UIImage(systemName: "person.circle.fill"), for: .normal)
         AskBtnOutlet.isHidden = false
     }
-
+    
     //player 1 button
     @IBOutlet weak var P1BtnOutlet: UIButton!
     @IBOutlet weak var P2BtnOutlet: UIButton!
@@ -177,8 +181,11 @@ class ViewController: UIViewController {
         plrBtnOutlets = [P1BtnOutlet, P2BtnOutlet, P3BtnOutlet, P4BtnOutlet]
         pointsLbls = [userPoints, P2points, P3points, P4points]
         deckOutletBtn.isUserInteractionEnabled = false
+        
+        model.loadModel(fileName: "gofish")
+        model.run()
         //deck array
-        deck = ["2C", "2D", "2H", "2S", "3C", "3D", "3H", "3S", "4C", "4D", "4H", "4S", "5C", "5D", "5H", "5S", "6C", "6D", "6H", "6S", "7C", "7D", "7H", "7S", "8C", "8D", "8H", "8S", "9C", "9D", "9H", "9S", "IC", "ID", "IH", "IS", "aC", "aD", "aH", "aS", "kC", "kD", "kH", "kS", "qC", "qD", "qH", "qS", "jC", "jD", "jH", "jS" ]
+        deck = ["2C", "2D", "2H", "2S", "3C", "3D", "3H", "3S", "4C", "4D", "4H", "4S", "5C", "5D", "5H", "5S", "6C", "6D", "6H", "6S", "7C", "7D", "7H", "7S", "8C", "8D", "8H", "8S", "9C", "9D", "9H", "9S", "10C", "10D", "10H", "10S", "aC", "aD", "aH", "aS", "kC", "kD", "kH", "kS", "qC", "qD", "qH", "qS", "jC", "jD", "jH", "jS" ]
         deck.shuffle()
     
         //set the UI constraints to the player's hand
@@ -226,92 +233,6 @@ class ViewController: UIViewController {
 //        iv1.isUserInteractionEnabled = true
 //        iv1.transform = iv1.transform.rotated(by: CGFloat(Double.pi / 2))
 //        p2SV.addArrangedSubview(iv21)
-        func checkingHand(requestedCard:String, asker:Player) -> String {
-        ##input is either : "First", "Multiple", or a specific card
-        var result: String = ""
-        if(requestedCard == "first"){
-            result  = asker.cards[0]
-        }
-        else if(requestedCard == "multiple"){
-            if(asker.countQ > 1){
-                result = "qC"
-            }
-            else if(asker.countK > 1){
-                result = "kC"
-            }
-            else if(asker.countJ > 1){
-                result = "jC"
-            }
-            else if(asker.countA > 1){
-                result = "aC"
-            }
-            else if(asker.count2 > 1){
-                result = "2H"
-            }else if(asker.count3 > 1){
-                result = "3H"
-            }
-            else if(asker.count4 > 1){
-                result = "4H"
-            }
-            else if(asker.count5 > 1){
-                result = "5H"
-            }
-            else if(asker.count6 > 1){
-                result = "6H"
-            }
-            else if(asker.count7 > 1){
-                result = "7H"
-            }
-            else if(asker.count8 > 1){
-                result = "8H"
-            }
-            else if(asker.count9 > 1){
-                result = "9H"
-            }
-            else if(asker.count10 > 1){
-                result = "10H"
-            }
-            else{
-                result = "multiple_failed"
-            }
-        }
-        else{
-            var z:Int = -1
-            result = "failed"
-            let reqCardPrefix = String(Array(requestedCard)[0])
-            for i in 0..<asker.cards.count{
-                let a = String(Array(asker.cards[i])[0])
-                if(requestedCard.hasPrefix(a)){
-                    z = i
-                }
-            }
-            if(z > -1){
-                if(z+1 <= asker.cards.count){
-                    z += 1
-                    if(asker.cards[z].hasPrefix(reqCardPrefix)){
-                        if(z+1 <= asker.cards.count){
-                            z += 1
-                            if(asker.cards[z].hasPrefix(reqCardPrefix)){
-                                if(z+1 <= asker.cards.count){
-                                    z += 1
-                                    result = asker.cards[z]
-                                }
-                                else{
-                                    result = "failed"
-                                }
-                            }
-                        }
-                        else{
-                            result = "failed"
-                        }
-                    }
-                }
-                else{
-                    result = "failed"
-                }
-            }
-        }
-        return result
         gameNowBegan = true
         //distribute the cards to each player
         allocateCards()
@@ -347,6 +268,48 @@ class ViewController: UIViewController {
                 for view in stacks[0].subviews{
                     view.isUserInteractionEnabled = true
                 }
+                if (model != nil && model!.loadedModel == "gofish" && model!.waitingForAction) && model!.actionChunk() {
+                    //Checking the state of the model
+                    var state = model!.lastAction("state")
+                    var userAskedPlayer = ""
+                    if (state == "ask"){
+                        //What card is being asked
+                        userAskedCard = model!.lastAction("card_ask")
+                        //Who is being asked
+                        userAskedPlayer = model!.lastAction("opponent_player")
+                        //Make sure to transform this into proper input for the code
+                        var opponent: Player = nil
+                        for player in players{
+                            if(userAskedPlayer == player.playerName){
+                                opponent = player
+                            }
+                        }
+                        respondToCardRequest(userAskedCard, players[0], opponent)
+
+                    //In the respondToCardRequest, add communication to the models about what happened
+                    }
+                    else if( state == "checking"){
+                        var decision = model!.lastAction("card_deck")
+                        var resultCheck = ""
+                        //Unsure how active player is specified in this code
+                        resultCheck = checkingHand(decision, players[0])
+                        //resultCheck will either be a string containing a card, or it contains an indicator for failure
+                        if(resultCheck != "failed") {
+                            model!.modifyLastAction(slot: "card_deck", value: String(resultCheck))
+                            model!.modifyLastAction(slot: "state", value: "checking")
+                        }
+                        //If the checking failed, mention this to the model
+                        //If it was asking for a multiple and failed
+                        else if (decision == multiple){
+                            model!.modifyLastAction(slot: "state", value: "multiple_failed")
+                        }
+                        //The model was looking through entire hand and reached the end
+                        else{
+                            model!.modifyLastAction(slot: "state", value: "checking_failed")
+                        }
+                    }
+                }
+                
             }
             else{
                 selectCardLbl.isHidden = true
@@ -460,11 +423,28 @@ class ViewController: UIViewController {
 //        AskBtnOutlet.isHidden = false
         selectCardLbl.text = "Select Player"
         userAskedCard = sender.userTappedCard!
-        P2BtnOutlet.isUserInteractionEnabled = true
-        P3BtnOutlet.isUserInteractionEnabled = true
-        P4BtnOutlet.isUserInteractionEnabled = true
+        for player in plrBtnOutlets{
+            player.isUserInteractionEnabled = true
+        }
+//        P2BtnOutlet.isUserInteractionEnabled = true
+//        P3BtnOutlet.isUserInteractionEnabled = true
+//        P4BtnOutlet.isUserInteractionEnabled = true
     }
 
+    
+    func distributeCardsIfhandEmpty(){
+        for player in players{
+            if(player.cards.count == 0){
+                if(deck.count >= 5){
+                    for _ in 0..<5{
+                        let randomCard = deck.randomElement()!
+                        player.cards.append(randomCard)
+                        deck.remove(at: deck.firstIndex(of: randomCard)!)
+                    }
+                }
+            }
+        }
+    }
     
     func respondToCardRequest(requestedCard:String, asker: Player, giver: Player){
         var temp = giver.cards
@@ -519,7 +499,6 @@ class ViewController: UIViewController {
 //                }
                 giver.icon?.setBackgroundImage(UIImage(systemName: "person.circle"), for: .normal)
             }
-            
             //add card from deck to user's hand
             else if(asker.playerIsHuman){
                 goFishBtnOutlet.isHidden = true
@@ -563,7 +542,6 @@ class ViewController: UIViewController {
             
         }
     }
-    
     //function to arrange cards in hand in ascending order
     func sortHand(hand:[String]) -> [String]{
         let sorterdHand = hand.sorted { $0.compare($1) == ComparisonResult.orderedAscending }
@@ -640,7 +618,7 @@ class ViewController: UIViewController {
             }
             if(player.count10 == 4){
                 for card in temp{
-                    if(card.hasPrefix("I")){
+                    if(card.hasPrefix("10")){
                         player.cards.remove(at: player.cards.firstIndex(of: card)!)
                     }
                 }
@@ -775,6 +753,9 @@ class ViewController: UIViewController {
 //            iv.transform = iv.transform.rotated(by: CGFloat(Double.pi))
             
             if(asker != nil && asker.playerIsHuman){
+                for i in 1..<plrBtnOutlets.count{
+                    plrBtnOutlets[i].isUserInteractionEnabled = false
+                }
                 iv.isUserInteractionEnabled = true
             }
             else{
@@ -799,12 +780,118 @@ class ViewController: UIViewController {
             }
         }
         deckCountLbl.text = String(deck.count) + " remaining"
-        
+        for player in players{
+            if(player.cards.count == 0){
+                player.isOutOfGame = true
+            }
+        }
     }
     
-    class CustomTapGestureRecognizer: UITapGestureRecognizer {
-        var userTappedCard: String?
+//    func nextPlayer(){
+//        for i in 0..<players.count{
+//            if(players[i].isOutOfGame){
+//
+//            }
+//        }
+//    }
+    
+    func checkingHand(requestedCard:String, asker:Player) -> String {
+        var result: String = ""
+        //check if model wants first card
+        if(requestedCard == "first"){
+            //send first card from hand
+            result  = asker.cards[0]
+        }
+        //check if model wants a card which is multiple
+        else if(requestedCard == "multiple"){
+            //check which card is multiple and return that card name
+            if(asker.countQ > 1){
+                result = "qC"
+            }
+            else if(asker.countK > 1){
+                result = "kC"
+            }
+            else if(asker.countJ > 1){
+                result = "jC"
+            }
+            else if(asker.countA > 1){
+                result = "aC"
+            }
+            else if(asker.count2 > 1){
+                result = "2H"
+            }else if(asker.count3 > 1){
+                result = "3H"
+            }
+            else if(asker.count4 > 1){
+                result = "4H"
+            }
+            else if(asker.count5 > 1){
+                result = "5H"
+            }
+            else if(asker.count6 > 1){
+                result = "6H"
+            }
+            else if(asker.count7 > 1){
+                result = "7H"
+            }
+            else if(asker.count8 > 1){
+                result = "8H"
+            }
+            else if(asker.count9 > 1){
+                result = "9H"
+            }
+            else if(asker.count10 > 1){
+                result = "10H"
+            }
+            else{
+                result = "multiple_failed"
+            }
+        }
+        else{
+            var z:Int = -1
+            result = "failed"
+            //check if the card given by model is present in hand
+            let reqCardPrefix = String(Array(requestedCard)[0])
+            for i in 0..<asker.cards.count{
+                let a = String(Array(asker.cards[i])[0])
+                if(requestedCard.hasPrefix(a)){
+                    z = i
+                }
+            }
+            //if card present
+            if(z > -1){
+                
+                if(z+1 <= asker.cards.count){
+                    z += 1
+                    //check if card next to requested card is same else increment it and repeat this twice if consiquitive card is same
+                    //return failed if card is part of end of hand
+                    if(asker.cards[z].hasPrefix(reqCardPrefix)){
+                        if(z+1 <= asker.cards.count){
+                            z += 1
+                            if(asker.cards[z].hasPrefix(reqCardPrefix)){
+                                if(z+1 <= asker.cards.count){
+                                    z += 1
+                                    result = asker.cards[z]
+                                }
+                                else{
+                                    result = "failed"
+                                }
+                            }
+                        }
+                        else{
+                            result = "failed"
+                        }
+                    }
+                }
+                else{
+                    result = "failed"
+                }
+            }
+        }
+        return result
     }
-
+}
+class CustomTapGestureRecognizer: UITapGestureRecognizer {
+    var userTappedCard: String?
 }
 
