@@ -3,7 +3,7 @@
 
 (add-dm
     (goal isa state_control state start_state)
-    (action isa decision state first_start card_ask init opponent_player player1 current_player self first_starter false)
+    (action isa decision state first_start card_ask init opponent_player player1 current_player self first_starter false strategy g2)
 )
 
 ;;; no need to choose player
@@ -118,6 +118,8 @@
 		isa decision
 		state checking
 		card_deck first
+		strategy g2
+		
 )
 
 (p g2-retrieve-memory
@@ -154,6 +156,7 @@
 		isa decision
 		state checking
 		card_deck =card
+		strategy g2
 )
 
 
@@ -175,7 +178,8 @@
 		isa decision
 		state ask
 		card_ask =card
-		opponent_player player1		
+		opponent_player player1	
+		strategy g2
 )
 
 (p general2-failure ;;;can't remeber who asked what card  before
@@ -204,6 +208,7 @@
         isa decision
         state checking
         card_deck multiple ;; check for multiple cards.
+	strategy aggressive
 )
 
 (p aggressive-stradegy-startA
@@ -227,6 +232,7 @@
         state ask
         card_ask =card
         opponent_player player1 
+	strategy aggressive
 )
 
 (p aggressive-stradegy-startB
@@ -244,6 +250,7 @@
         isa decision
         state checking 
         card_deck first 
+	strategy aggressive
 )
 
 (p aggressive-stradegy-next
@@ -279,6 +286,7 @@
         isa decision
         state checking 
         card_deck =card 
+	strategy aggressive
 )
 
 (p aggressive-stradegy-check-failed
@@ -301,6 +309,7 @@
         state ask
         card_ask =card
         opponent_player player1 
+	strategy aggressive
 )
 
 (p aggressive-stradegy-next-failed
@@ -318,6 +327,7 @@
         isa decision
         state checking
         card_deck first
+	strategy random
 )
 
 (p special-stradegy-choose-c ;;; select conservative stradegy
@@ -332,6 +342,7 @@
         isa decision
         state checking
         card_deck first
+	strategy conserv
 )
 
 
@@ -367,6 +378,7 @@
         isa decision
         state checking
         card_deck =card
+	strategy conserv
 )
 
 (p conservative_stradegy-next-success
@@ -386,6 +398,7 @@
         state ask
         card_ask =card
         opponent_player player1 
+	strategy conserv
 )
 
 (p conservative_stradegy-startB
@@ -403,6 +416,7 @@
         isa decision
         state checking
         card_deck multiple 
+	strategy aggressive
 )
 
 (p random-ask
@@ -426,6 +440,7 @@
         state ask
         card_ask =card
         opponent_player player1 
+	strategy random
 )
 
 
