@@ -183,7 +183,7 @@ class ViewController: UIViewController {
         deckOutletBtn.isUserInteractionEnabled = false
         
         //Filename = what the actr file is called
-        model.loadModel(fileName: "gofish")
+        model.loadModel(fileName: "gofish_2player_v1.1.actr")
         model.loadedModel = "gofish"
         model.run()
         //deck array
