@@ -41,7 +41,7 @@ class Player{
 class ViewController: UIViewController {
 
 //player 4 button
-    let model = Model()
+    var model = Model()
     
     
     
@@ -183,8 +183,8 @@ class ViewController: UIViewController {
         deckOutletBtn.isUserInteractionEnabled = false
         
         //Filename = what the actr file is called
-        model.loadModel(fileName: "gofish_2player_v1.1.actr")
-        model.loadedModel = "gofish"
+        model.loadModel(fileName: "gofish_2")
+        //model.loadedModel = "gofish"
         model.run()
         //deck array
         deck = ["2C", "2D", "2H", "2S", "3C", "3D", "3H", "3S", "4C", "4D", "4H", "4S", "5C", "5D", "5H", "5S", "6C", "6D", "6H", "6S", "7C", "7D", "7H", "7S", "8C", "8D", "8H", "8S", "9C", "9D", "9H", "9S", "10C", "10D", "10H", "10S", "aC", "aD", "aH", "aS", "kC", "kD", "kH", "kS", "qC", "qD", "qH", "qS", "jC", "jD", "jH", "jS" ]
@@ -270,15 +270,15 @@ class ViewController: UIViewController {
                 for view in stacks[0].subviews{
                     view.isUserInteractionEnabled = true
                 }
-                if (model != nil && model!.loadedModel == "gofish" && model!.waitingForAction) && model!.actionChunk() {
+                if (model.waitingForAction) && model.actionChunk() {
                     //Checking the state of the model
-                    var state = model!.lastAction("state")
+                    let state = model.lastAction(slot: "state")
                     var userAskedPlayer = ""
                     if (state == "ask"){
                         //What card is being asked
-                        userAskedCard = model!.lastAction("card_ask")
+                        userAskedCard = model.lastAction(slot: "card_ask")!
                         //Who is being asked
-                        userAskedPlayer = model!.lastAction("opponent_player")
+                        userAskedPlayer = model.lastAction(slot: "opponent_player")!
                         //Make sure to transform this into proper input for the code
                         var opponent: Player!
                         for player in players{
@@ -291,23 +291,23 @@ class ViewController: UIViewController {
                     //In the respondToCardRequest, add communication to the models about what happened
                     }
                     else if( state == "checking"){
-                        var decision = model!.lastAction("card_deck")
+                        let decision = model.lastAction(slot: "card_deck")
                         var resultCheck = ""
                         //Unsure how active player is specified in this code
-                        resultCheck = checkingHand(decision, players[0])
+                        resultCheck = checkingHand(requestedCard: decision!, asker: players[0])
                         //resultCheck will either be a string containing a card, or it contains an indicator for failure
                         if(resultCheck != "failed") {
-                            model!.modifyLastAction(slot: "card_deck", value: String(resultCheck))
-                            model!.modifyLastAction(slot: "state", value: "checking")
+                            model.modifyLastAction(slot: "card_deck", value: String(resultCheck))
+                            model.modifyLastAction(slot: "state", value: "checking")
                         }
                         //If the checking failed, mention this to the model
                         //If it was asking for a multiple and failed
                         else if (decision == "multiple"){
-                            model!.modifyLastAction(slot: "state", value: "multiple_failed")
+                            model.modifyLastAction(slot: "state", value: "multiple_failed")
                         }
                         //The model was looking through entire hand and reached the end
                         else{
-                            model!.modifyLastAction(slot: "state", value: "checking_failed")
+                            model.modifyLastAction(slot: "state", value: "checking_failed")
                         }
                     }
                 }
@@ -486,14 +486,14 @@ class ViewController: UIViewController {
 //                return
             }
             //if(asker.playerIsHuman){
-                if (model!.lastAction("state") == "ask") {
-                    model!.modifyLastAction(slot: "state", value: "succeed")
+                if (model.lastAction(slot: "state") == "ask") {
+                    model.modifyLastAction(slot: "state", value: "succeed")
                 }
-                else if (model!.lastAction("state") == "wait_memorize"){
-                    model!.modifyLastAction(slot: "card_ask", value: "requestedCard")
-                    model!.modifyLastAction(slot: "current_player", value: "player1")
+                else if (model.lastAction(slot: "state") == "wait_memorize"){
+                    model.modifyLastAction(slot: "card_ask", value: "requestedCard")
+                    model.modifyLastAction(slot: "current_player", value: "player1")
                     //model!.modifyLastAction(slot: "current_player", value: giver.playerName)
-                    model!.modifyLastACtion(slot: "state", value: "wait_memorize")
+                    model.modifyLastAction(slot: "state", value: "wait_memorize")
                 }
             //}
         }
@@ -516,16 +516,16 @@ class ViewController: UIViewController {
             //add card from deck to user's hand
             //517-519 check in xcode.
             else if(asker.playerIsHuman){
-                if (model!.lastAction("state") == "ask") {
-                    model!.modifyLastAction(slot: "state", value: "gofish")
+                if (model.lastAction(slot: "state") == "ask") {
+                    model.modifyLastAction(slot: "state", value: "gofish")
                 }
-                else if (model!.lastAction("state") == "wait_memorize"){
-                    model!.modifyLastAction(slot: "card_ask", value: "requestedCard")
+                else if (model.lastAction(slot: "state") == "wait_memorize"){
+                    model.modifyLastAction(slot: "card_ask", value: "requestedCard")
                     
                     //model!.modifyLastAction(slot: "current_player", value: giver.player)
                     
-                    model!.modifyLastAction(slot: "current_player", value: giver.playerName)
-                    model!.modifyLastACtion(slot: "state", value: "start")
+                    model.modifyLastAction(slot: "current_player", value: giver.playerName)
+                    model.modifyLastAction(slot: "state", value: "start")
                 }
                 goFishBtnOutlet.isHidden = true
                 AskBtnOutlet.isHidden = true
@@ -755,23 +755,7 @@ class ViewController: UIViewController {
             player.icon?.setBackgroundImage(UIImage(systemName: "person.circle"), for: .normal)
         }
         asker.icon?.setBackgroundImage(UIImage(systemName: "person.circle.fill"), for: .normal)
-//        countCardsInHand(player: players[0])
-//        print("count 2 \(players[0].count2)")
-//        print("count 3 \(players[0].count3)")
-//        print("count 4 \(players[0].count4)")
-//        print("count 5 \(players[0].count5)")
-//        print("count 6 \(players[0].count6)")
-//        print("count 7 \(players[0].count7)")
-//        print("count 8 \(players[0].count8)")
-//        print("count 9 \(players[0].count9)")
-//        print("count 10 \(players[0].count10)")
-//        print("count A \(players[0].countA)")
-//        print("count K \(players[0].countK)")
-//        print("count Q \(players[0].countQ)")
-//        print("count J \(players[0].countJ)")
-//        if(gameNowBegan){
-//            asker = players[1]
-//            gameNowBegan = false
+
 //
 //        }
         for card in players[0].cards{
@@ -798,8 +782,8 @@ class ViewController: UIViewController {
             players[stack].cards = sortHand(hand: players[stack].cards)
 //            countCardsInHand(player: players[stack])
             stacks[stack].subviews.forEach({ $0.removeFromSuperview() })
-            for _ in players[stack].cards{
-                let iv = UIImageView(image: UIImage(named: "yellow_back"))
+            for card in players[stack].cards{
+                let iv = UIImageView(image: UIImage(named: card))
 //                let iv = UIImageView(image: UIImage(named: card))
 //                iv.transform = iv.transform.rotated(by: CGFloat(Double.pi))
                 stacks[stack].addArrangedSubview(iv)
