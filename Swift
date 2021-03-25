@@ -279,6 +279,8 @@ class ViewController: UIViewController {
                         userAskedCard = model.lastAction(slot: "card_ask")!
                         //Who is being asked
                         userAskedPlayer = model.lastAction(slot: "opponent_player")!
+                        print(model.lastAction(slot: "strategy")
+                        
                         //Make sure to transform this into proper input for the code
                         var opponent: Player!
                         for player in players{
@@ -292,6 +294,9 @@ class ViewController: UIViewController {
                     }
                     else if( state == "checking"){
                         let decision = model.lastAction(slot: "card_deck")
+                        //Check if it reaches the correct strategy
+                        let confirmation = model.lastAction(slot: "strategy")
+                        print(confirmation)
                         var resultCheck = ""
                         //Unsure how active player is specified in this code
                         resultCheck = checkingHand(requestedCard: decision!, asker: players[0])
@@ -518,6 +523,7 @@ class ViewController: UIViewController {
             else if(asker.playerIsHuman){
                 if (model.lastAction(slot: "state") == "ask") {
                     model.modifyLastAction(slot: "state", value: "gofish")
+                    print("did we get here? Yes! Model's ask failed")
                 }
                 else if (model.lastAction(slot: "state") == "wait_memorize"){
                     model.modifyLastAction(slot: "card_ask", value: "requestedCard")
