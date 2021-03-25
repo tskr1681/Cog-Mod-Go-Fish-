@@ -2,7 +2,7 @@
 //  ViewController.swift
 //  GoFish
 //
-//  Created by Guru Karthik on 09/03/21.
+//  Created by Sai Krishna on 06/03/21.
 //
 
 //framework which provides the classes, functons needed for user interactions, user interface and others
@@ -278,13 +278,13 @@ class ViewController: UIViewController {
                         //Who is being asked
                         userAskedPlayer = model!.lastAction("opponent_player")
                         //Make sure to transform this into proper input for the code
-                        var opponent: Player = nil
+                        var opponent: Player!
                         for player in players{
                             if(userAskedPlayer == player.playerName){
                                 opponent = player
                             }
                         }
-                        respondToCardRequest(userAskedCard, players[0], opponent)
+                        respondToCardRequest(requestedCard: userAskedCard, asker: players[0], giver: opponent)
 
                     //In the respondToCardRequest, add communication to the models about what happened
                     }
@@ -483,9 +483,20 @@ class ViewController: UIViewController {
                 self.startPlay(asker1: asker, giver1: giver)
 //                return
             }
+            if(asker.playerIsHuman){
+                if (model!.lastAction("state") == "ask") {
+                    model!.modifyLastAction(slot: "state", value: "succeed")
+                }
+                else if (model!.lastAction("state") == "wait_memorize"){
+                    model!.modifyLastAction(slot: "card_ask", value: "requestedCard")
+                    model!.modifyLastAction(slot: "current_player", value: giver.playerName)
+                    model!.modifyLastACtion(slot: "state", value: "wait_memorize")
+                }
+            }
         }
         else{
             //enable GoFish button
+            
             if(giver.playerIsHuman){
 //                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0){
                     self.AskBtnOutlet.isHidden = true
@@ -501,6 +512,14 @@ class ViewController: UIViewController {
             }
             //add card from deck to user's hand
             else if(asker.playerIsHuman){
+                if (model!.lastAction("state") == "ask") {
+                    model!.modifyLastAction(slot: "state", value: "gofish")
+                }
+                else if (model!.lastAction("state") == "wait_memorize"){
+                    model!.modifyLastAction(slot: "card_ask", value: "requestedCard")
+                    model!.modifyLastAction(slot: "current_player", value: giver.playerName)
+                    model!.modifyLastACtion(slot: "state", value: "start")
+                }
                 goFishBtnOutlet.isHidden = true
                 AskBtnOutlet.isHidden = true
                 deckOutletBtn.isUserInteractionEnabled = false
