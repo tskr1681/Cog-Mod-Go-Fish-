@@ -182,6 +182,7 @@ class ViewController: UIViewController {
         pointsLbls = [userPoints, P2points, P3points, P4points]
         deckOutletBtn.isUserInteractionEnabled = false
         
+        //Filename = what the actr file is called
         model.loadModel(fileName: "gofish")
         model.run()
         //deck array
@@ -483,16 +484,17 @@ class ViewController: UIViewController {
                 self.startPlay(asker1: asker, giver1: giver)
 //                return
             }
-            if(asker.playerIsHuman){
+            //if(asker.playerIsHuman){
                 if (model!.lastAction("state") == "ask") {
                     model!.modifyLastAction(slot: "state", value: "succeed")
                 }
                 else if (model!.lastAction("state") == "wait_memorize"){
                     model!.modifyLastAction(slot: "card_ask", value: "requestedCard")
-                    model!.modifyLastAction(slot: "current_player", value: giver.playerName)
+                    model!.modifyLastAction(slot: "current_player", value: "player1")
+                    //model!.modifyLastAction(slot: "current_player", value: giver.playerName)
                     model!.modifyLastACtion(slot: "state", value: "wait_memorize")
                 }
-            }
+            //}
         }
         else{
             //enable GoFish button
