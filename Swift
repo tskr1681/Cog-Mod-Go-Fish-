@@ -513,12 +513,16 @@ class ViewController: UIViewController {
                 giver.icon?.setBackgroundImage(UIImage(systemName: "person.circle"), for: .normal)
             }
             //add card from deck to user's hand
+            //517-519 check in xcode.
             else if(asker.playerIsHuman){
                 if (model!.lastAction("state") == "ask") {
                     model!.modifyLastAction(slot: "state", value: "gofish")
                 }
                 else if (model!.lastAction("state") == "wait_memorize"){
                     model!.modifyLastAction(slot: "card_ask", value: "requestedCard")
+                    
+                    //model!.modifyLastAction(slot: "current_player", value: giver.player)
+                    
                     model!.modifyLastAction(slot: "current_player", value: giver.playerName)
                     model!.modifyLastACtion(slot: "state", value: "start")
                 }
