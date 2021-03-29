@@ -519,7 +519,7 @@ class ViewController: UIViewController {
 //            if (asker.model.lastAction(slot: "state") == "ask") {
 //                asker.model.modifyLastAction(slot: "state", value: "succeed")
 //                }
-//            else if (asker.model.lastAction(slot: "state") == "wait_memorize"){
+//            else if (asker.model.lastAction(slot: "state") == "wait_memorize") or (asker.model.lastAction(slot: "state") == "first_start"){
 //                    asker.model.modifyLastAction(slot: "card_ask", value: "requestedCard")
 //                asker.model.modifyLastAction(slot: "current_player", value: asker.playerName)
 //                    //model!.modifyLastAction(slot: "current_player", value: giver.playerName)
