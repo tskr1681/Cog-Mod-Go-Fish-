@@ -182,6 +182,7 @@ class ViewController: UIViewController {
         plrBtnOutlets = [P1BtnOutlet, P2BtnOutlet, P3BtnOutlet, P4BtnOutlet]
         pointsLbls = [userPoints, P2points, P3points, P4points]
         deckOutletBtn.isUserInteractionEnabled = false
+  
         
         //Filename = what the actr file is called
         //model.loadModel(fileName: "gofish_3")
@@ -260,9 +261,15 @@ class ViewController: UIViewController {
             giver = giver1
             //check if player is computer
             if(!asker.playerIsHuman){
-              //  userAskedCard = asker.model.lastAction(slot: "card_ask")!
+//                userAskedCard = asker.model.lastAction(slot: "card_ask")!
                // userAskedCard =
-                print("iss \(asker.model.lastAction(slot: "choice"))")
+//                asker.model.modifyLastAction(slot: "state", value: "ask")
+                //asker.model.modifyLastAction(slot: "state", value: "start")
+                print("asker: \(asker.model.lastAction(slot: "state"))")
+                print("card_deck is  \(asker.model.lastAction(slot: "card_deck"))")
+                
+                print("iss \(asker.model.lastAction(slot: "card_ask"))")
+                print("chunk \(asker.model.lastAction(slot: "chunk"))")
                 //ask random card from hand to user
                 //userAskedCard = asker.cards.randomElement()!
             }
@@ -287,7 +294,7 @@ class ViewController: UIViewController {
                 }
                 let model = asker.model
                 
-                model?.waitingForAction  = true
+           //     model?.waitingForAction  = true
                
                 if (model!.waitingForAction)  && (model!.actionChunk()){
                     //Checking the state of the model
@@ -377,10 +384,13 @@ class ViewController: UIViewController {
             
             if(i == 1){
                 p.model = Model()
-                p.model.loadModel(fileName: "gofish_2")
-               // p.model.reset()
+                p.model.loadModel(fileName: "prisoner")
+                p.model.run()
+                print("initial state is \(p.model.lastAction(slot: "state"))")
+               
+                // p.model.reset()
               //  p.model.modifyLastAction(slot: "state", value: "first_start")
-                p.model.run(step: true)
+               
             }
             else if(i == 1){
               //  p.model.loadModel(fileName: "gofish_3")
@@ -515,17 +525,18 @@ class ViewController: UIViewController {
                 self.startPlay(asker1: asker, giver1: giver)
 //                return
             }
-//            //if(asker.playerIsHuman){
+            if(asker.playerIsHuman){
+                giver.model.modifyLastAction(slot: "state", value: "suceed")
 //            if (asker.model.lastAction(slot: "state") == "ask") {
 //                asker.model.modifyLastAction(slot: "state", value: "succeed")
 //                }
-//            else if (asker.model.lastAction(slot: "state") == "wait_memorize") or (asker.model.lastAction(slot: "state") == "first_start"){
+//            else if (asker.model.lastAction(slot: "state") == "wait_memorize"){
 //                    asker.model.modifyLastAction(slot: "card_ask", value: "requestedCard")
 //                asker.model.modifyLastAction(slot: "current_player", value: asker.playerName)
 //                    //model!.modifyLastAction(slot: "current_player", value: giver.playerName)
 //                    asker.model.modifyLastAction(slot: "state", value: "wait_memorize")
 //                }
-//            //}
+            }
         }
         else{
             //enable GoFish button
@@ -549,7 +560,7 @@ class ViewController: UIViewController {
 //                if (asker.model.lastAction(slot: "state") == "ask") {
 //                    asker.model.modifyLastAction(slot: "state", value: "gofish")
 //                }
-//                else if (asker.model.lastAction(slot: "state") == "wait_memorize") or (asker.model.lastAction(slot: "state") == "first_start"){
+//                else if (asker.model.lastAction(slot: "state") == "wait_memorize"){
 //                    asker.model.modifyLastAction(slot: "card_ask", value: "requestedCard")
 //
 //                    //model!.modifyLastAction(slot: "current_player", value: giver.player)
@@ -557,6 +568,12 @@ class ViewController: UIViewController {
 //                    asker.model.modifyLastAction(slot: "current_player", value: giver.playerName)
 //                    asker.model.modifyLastAction(slot: "state", value: "start")
 //                }
+                giver.model.modifyLastAction(slot: "card_ask", value: requestedCard.prefix(1).uppercased()) //
+                giver.model.modifyLastAction(slot: "current_player", value: asker.playerName) //whoever has the turn right now
+                
+                giver.model.modifyLastAction(slot: "state", value: "start")
+                
+//                giver.model.modifyLastAction(slot: "state", value: "gofish")
                 goFishBtnOutlet.isHidden = true
                 AskBtnOutlet.isHidden = true
                 deckOutletBtn.isUserInteractionEnabled = false
