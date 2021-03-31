@@ -300,11 +300,12 @@ class ViewController: UIViewController {
                     //Checking the state of the model
                     let state = model!.lastAction(slot: "state")
                     var userAskedPlayer = ""
-                    if (state != "ask"){
+                    if (state == "ask"){
                         //What card is being asked
 
                         //Who is being asked
                         userAskedPlayer = model!.lastAction(slot: "opponent_player")!
+                        userAskedCard = model!.lastAction(slot: "card_ask")!
                         //Make sure to transform this into proper input for the code
                         var opponent: Player!
                         for player in players{
