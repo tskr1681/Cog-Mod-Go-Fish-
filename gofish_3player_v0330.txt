@@ -1,0 +1,593 @@
+;;; Model of go fish - 3 player mode
+;;;
+
+(add-dm
+    (goal isa state_control state start_state)
+    (p1 isa player-order current player1 next player2 ) 
+    (p2 isa player-order current player2 next player1 )
+)
+
+(set-all-baselevels -100 10) ;; time offset and number of references
+
+(p start-retrieve-state-first ;;; retrive state from action module
+	=goal>
+		isa state_control
+		state start_state
+==>
+	=goal>
+		isa state_control
+		state retrieving
+	+action>
+		isa decision
+		state wait_memorize
+		chunk sequence
+        current_player nil
+        card_ask nil
+)
+
+(p gofish ;;;strategy when go fish
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+        isa decision
+        state gofish
+==>
+    -imaginal>
+    +action>
+        isa decision
+        state wait_memorize
+        chunk sequence
+        current_player nil
+        card_ask nil
+)
+
+(p succeed ;;;strategy when told succeed
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+        isa decision
+        state succeed
+==>
+    +goal>
+        isa state_control
+        state start
+    -action>
+    -imaginal>
+)
+
+(p wait-memorize ;;;strategy when it's not your turn
+    =goal>
+        isa state_control
+        state retrieving
+    =action>
+        isa decision
+        state wait_memorize
+==>
+    +action>
+        isa decision
+        state wait_memorize
+        chunk sequence
+        current_player nil
+        card_ask nil
+)
+
+(p start_a_new_round 
+	=goal>
+		isa state_control
+		state retrieving
+	=action>
+ 		isa decision
+		state start
+==>
+    =goal>
+        isa state_control
+        state start
+	-action>
+)
+
+(p start_check_card ;;; check what card you have
+    =goal>
+        isa state_control
+        state start
+==>
+    +goal>
+        isa general_strategy1
+        state start
+	+action>
+		isa decision
+		state checking
+		card_deck first
+		strategy g1
+        chunk check
+)
+
+(p g1-retrieve-memory
+    =goal>
+        isa general_strategy1
+        state start
+    =action>
+    	isa decision
+    	state checking
+    	card_deck =card 
+==>
+    =goal>
+        isa general_strategy1
+        state next
+        card =card
+    +retrieval>
+        isa decision
+        chunk sequence ;;;recall cards from sequences
+        card_ask =card
+)
+
+(p g1-retrieve-memory-f
+	=goal>
+		isa general_strategy1
+		state next
+        card =card
+	?retrieval>
+		state  error 
+==>
+	=goal>
+		isa general_strategy1
+		state start
+	+action>
+		isa decision
+		state checking
+		card_deck =card
+		strategy g1
+        chunk check
+)
+
+(p g1-retrieve-memory-s1
+	=goal>
+		isa general_strategy1
+		state next
+	=retrieval>
+        isa decision
+        chunk sequence ;;;recall cards from sequences
+        card_ask =card
+        current_player =player
+==>
+	+goal>
+        isa state_control
+        state retrieving
+	+action>
+		isa decision
+		state ask
+		card_ask =card
+		opponent_player =player		
+		chunk exposed_cards
+        strategy g1
+)
+
+(p general1-failure ;;;can't remeber who asked what card  before
+    =goal>
+		isa general_strategy1
+		state start
+    =action>
+    	isa decision
+    	state checking_failed 
+==>
+    +goal>
+        isa general_strategy2
+        state start
+	+action>
+		isa decision
+		state checking
+		card_deck first
+        strategy g2
+        chunk check
+)
+
+(p start_general2 ;;; a new turn for the player with previous info
+;;; ask for exposed cards
+    =goal>
+        isa general_strategy2
+        state start
+    =action>
+    	isa decision
+    	state checking
+    	card_deck =card;;; the card_deck will be updated after each checking
+==>
+    =goal>
+        isa general_strategy2
+        state second
+        card =card
+    +retrieval>
+        isa decision
+        chunk exposed_cards ;;; recall the exposed card.
+        card_ask =card
+)
+
+(p start_general2_f
+    =goal>
+        isa general_strategy2
+        state second
+        card =card
+    ?retrieval>
+        state  error ;;; not in memory
+==>
+    +goal>
+        isa general_strategy2
+        state start
+    +action>
+        isa decision
+        state checking
+        card_deck =card ;;; retrieve the next card
+        chunk check
+        strategy g2
+
+)
+
+(p start_general2_s-f
+    =goal>
+        isa general_strategy2
+        state second
+        card =card
+    =retrieval>
+        isa decision
+        chunk exposed_cards ;;; recall the exposed card.
+        opponent_player all ;;; all players been asked
+==>
+    +goal>
+        isa general_strategy2
+        state start
+    +action>
+        isa decision
+        state checking
+        card_deck =card ;; check for the next card
+        chunk check
+        strategy g2
+)
+
+(p start_general2_s
+    =goal>
+        isa general_strategy2
+        state second
+    =retrieval>
+        isa decision
+        chunk exposed_cards ;;; recall the exposed card.
+        -opponent_player all ;;; not all players been asked
+        opponent_player =player
+==>
+    =goal>
+        isa general_strategy2
+        state next-player
+    +retrieval>
+        isa player-order
+        current =player
+)
+
+(p start_general2_s-next ;;; check the next player
+    =goal>
+        isa general_strategy2
+        state next-player
+        card =card
+    =retrieval>
+        isa player-order 
+        next =player
+==>
+    =goal>
+        isa general_strategy2
+        state next-check
+        player =player
+    +retrieval>
+        isa decision
+        chunk exposed_cards 
+        card_ask =card
+        opponent_player =player
+)
+
+(p start_general2_s-next-end ;;; next player not exposed
+    =goal>
+        isa general_strategy2
+        state next-check
+        card =card
+        player =player
+    ?retrieval>
+        state error
+==>
+    +goal>
+        isa state_control
+        state retrieving     
+    +action>
+        isa decision
+        state ask 
+        chunk exposed_cards
+        strategy g2
+        opponent_player =player
+        card_ask =card
+)
+
+(p start_general2_s-next-f ;;; next player exposed
+    =goal>
+        isa general_strategy2
+        state next-check
+    =retrieval>
+        isa decision
+        chunk exposed_cards 
+        card_ask =card
+        opponent_player =player
+==>
+    +goal>
+        isa general_strategy2
+        state start
+    +imaginal>
+        isa decision
+        chunk exposed_cards
+        card_ask =card
+        opponent_player all ;;; mark        
+    +action>
+        isa decision
+        state checking
+        card_deck =card ;; check for the next card
+        strategy g2
+        chunk check
+)
+
+(p g2_failure ;;; reach the end of the cards
+    =goal>
+        isa general_strategy2
+        state start
+    =action>
+    	isa decision
+    	state checking_failed 
+==>
+    +goal>
+		isa special_strategy
+        state select
+)
+
+(p special-strategy-choose-a ;;; select aggressive strategy
+	=goal>
+        isa special_strategy
+        state select
+==>
+	+goal>
+        isa aggressive_strategy
+        state start
+    +action>
+        isa decision
+        state checking
+        card_deck multiple ;; check for multiple cards.
+        chunk check
+        strategy aggressive
+)
+
+(p aggressive-strategy-startA
+    =goal>
+        isa aggressive_strategy
+        state start
+    =action>
+        isa decision
+        state checking 
+        card_deck =card ;;; Multiple card retrieved
+==>
+    +goal>
+        isa state_control
+        state retrieving
+    +action>
+        isa decision
+        state ask
+        card_ask =card
+        opponent_player player1 
+        chunk exposed_cards
+        strategy aggressive
+)
+
+(p aggressive-strategy-startB
+    =goal>
+        isa aggressive_strategy
+        state start
+    =action>
+        isa decision
+        state multiple_failed ;;; No multiple card
+==>
+    =goal>
+        isa aggressive_strategy
+        state next
+    +action>
+        isa decision
+        state checking 
+        card_deck first 
+        chunk check
+        strategy aggressive
+)
+
+(p aggressive-strategy-next
+    =goal>
+        isa aggressive_strategy
+        state next
+    =action>
+        isa decision
+        state checking 
+        card_deck =card
+==>
+    =goal>
+        isa aggressive_strategy
+        state check
+        card =card
+    +retrieval>
+        isa decision
+        chunk exposed_cards 
+        card_ask =card
+)
+
+(p aggressive-strategy-check-success
+    =goal>
+        isa aggressive_strategy
+        state check
+    =retrieval>
+        isa decision
+        chunk exposed_cards ;;; exposed card
+        card_ask =card
+==>
+    =goal>
+        isa aggressive_strategy
+        state next
+    +action>
+        isa decision
+        state checking 
+        card_deck =card 
+        chunk check
+        strategy aggressive
+)
+
+(p aggressive-strategy-check-failed
+    =goal>
+        isa aggressive_strategy
+        state check
+        card =card
+    ?retrieval>
+        state error ;; not exposed
+==>
+    +goal>
+        isa state_control
+        state retrieving
+    +action>
+        isa decision
+        state ask
+        card_ask =card
+        opponent_player player1 
+        chunk exposed_cards
+        strategy aggressive
+)
+
+(p aggressive-strategy-next-failed
+    =goal>
+        isa aggressive_strategy
+        state next
+    =action>
+        isa decision
+        state checking_failed
+==>
+    +goal>
+        isa random
+        state start
+    +action>
+        isa decision
+        state checking
+        card_deck first
+        chunk check
+        strategy random
+)
+
+(p special-strategy-choose-c ;;; select conservative strategy
+    =goal>
+        isa special_strategy
+        state select
+==>
+    +goal>
+        isa conservative_strategy
+        state start
+    +action>
+        isa decision
+        state checking
+        card_deck first
+        chunk check
+        strategy conservative
+)
+
+(p conservative_strategy-startA
+    =goal>
+        isa conservative_strategy
+        state start
+    =action>
+        isa decision
+        state checking 
+        card_deck =card
+==>
+    =goal>
+        isa conservative_strategy
+        state next
+    +retrieval>
+        isa decision
+        chunk exposed_cards
+        card_ask =card
+        opponent_player all
+)
+
+(p conservative_strategy-next-fail
+    =goal>
+        isa conservative_strategy
+        state next
+    ?retrieval>
+        state error ;;; not exposed to all players
+==>
+    =goal>
+        isa conservative_strategy
+        state start
+    +action>
+        isa decision
+        state checking
+        card_deck =card
+        chunk check
+        strategy conservative
+)
+
+(p conservative_strategy-next-success
+    =goal>
+        isa conservative_strategy
+        state next
+    =retrieval>
+        isa decision
+        chunk exposed_cards
+        card_ask =card
+        opponent_player all;;;  exposed to all players
+==>
+    +goal>
+        isa state_control
+        state retrieving
+    +action>
+        isa decision
+        state ask
+        card_ask =card
+        opponent_player player1 
+        chunk nil
+        strategy conservative
+)
+
+(p conservative_strategy-startB
+    =goal>
+        isa conservative_strategy
+        state start
+    =action>
+        isa decision
+        state checking_failed
+==>
+    +goal>
+        isa aggressive_strategy
+        state start
+    +action>
+        isa decision
+        state checking
+        card_deck multiple 
+        chunk check
+        strategy aggressive
+)
+
+(p random-ask
+    =goal>
+        isa random
+        state start
+    =action>
+        isa decision
+        state checking
+        card_deck =card ;; the first card
+==>
+    +goal>
+        isa state_control
+        state retrieving
+    +action>
+        isa decision
+        state ask
+        card_ask =card
+        opponent_player player1 
+        chunk exposed_cards
+        strategy random
+)
+
+(goal-focus goal)
