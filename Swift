@@ -300,12 +300,12 @@ class ViewController: UIViewController {
                     //Checking the state of the model
                     let state = model!.lastAction(slot: "state")
                     var userAskedPlayer = ""
-                    if (state == "ask"){
+                    if (state != "ask"){
+                        //if (state != "ask"){ should be if (state == "ask"){
                         //What card is being asked
 
                         //Who is being asked
                         userAskedPlayer = model!.lastAction(slot: "opponent_player")!
-                        userAskedCard = model!.lastAction(slot: "card_ask")!
                         //Make sure to transform this into proper input for the code
                         var opponent: Player!
                         for player in players{
@@ -527,7 +527,7 @@ class ViewController: UIViewController {
 //                return
             }
             if(asker.playerIsHuman){
-                giver.model.modifyLastAction(slot: "state", value: "suceed")
+                giver.model.modifyLastAction(slot: "state", value: "succeed")
 //            if (asker.model.lastAction(slot: "state") == "ask") {
 //                asker.model.modifyLastAction(slot: "state", value: "succeed")
 //                }
@@ -571,9 +571,8 @@ class ViewController: UIViewController {
 //                }
                 giver.model.modifyLastAction(slot: "card_ask", value: requestedCard.prefix(1).uppercased()) //
                 giver.model.modifyLastAction(slot: "current_player", value: asker.playerName) //whoever has the turn right now
-                
                 giver.model.modifyLastAction(slot: "state", value: "start")
-                
+                giver.model.modifyLastAction(slot: "result", value: "gofish")
 //                giver.model.modifyLastAction(slot: "state", value: "gofish")
                 goFishBtnOutlet.isHidden = true
                 AskBtnOutlet.isHidden = true
