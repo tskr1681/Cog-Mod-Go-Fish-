@@ -261,15 +261,8 @@ class ViewController: UIViewController {
             giver = giver1
             //check if player is computer
             if(!asker.playerIsHuman){
-//                userAskedCard = asker.model.lastAction(slot: "card_ask")!
-               // userAskedCard =
-//                asker.model.modifyLastAction(slot: "state", value: "ask")
-                //asker.model.modifyLastAction(slot: "state", value: "start")
                 print("asker: \(asker.model.lastAction(slot: "state"))")
                 print("card_deck is  \(asker.model.lastAction(slot: "card_deck"))")
-                
-                print("iss \(asker.model.lastAction(slot: "card_ask"))")
-                print("chunk \(asker.model.lastAction(slot: "chunk"))")
                 //ask random card from hand to user
                 //userAskedCard = asker.cards.randomElement()!
             }
@@ -528,15 +521,6 @@ class ViewController: UIViewController {
             }
             if(asker.playerIsHuman){
                 giver.model.modifyLastAction(slot: "state", value: "succeed")
-//            if (asker.model.lastAction(slot: "state") == "ask") {
-//                asker.model.modifyLastAction(slot: "state", value: "succeed")
-//                }
-//            else if (asker.model.lastAction(slot: "state") == "wait_memorize"){
-//                    asker.model.modifyLastAction(slot: "card_ask", value: "requestedCard")
-//                asker.model.modifyLastAction(slot: "current_player", value: asker.playerName)
-//                    //model!.modifyLastAction(slot: "current_player", value: giver.playerName)
-//                    asker.model.modifyLastAction(slot: "state", value: "wait_memorize")
-//                }
             }
         }
         else{
@@ -556,24 +540,10 @@ class ViewController: UIViewController {
                 giver.icon?.setBackgroundImage(UIImage(systemName: "person.circle"), for: .normal)
             }
             //add card from deck to user's hand
-            //517-519 check in xcode.
             else if(asker.playerIsHuman){
-//                if (asker.model.lastAction(slot: "state") == "ask") {
-//                    asker.model.modifyLastAction(slot: "state", value: "gofish")
-//                }
-//                else if (asker.model.lastAction(slot: "state") == "wait_memorize"){
-//                    asker.model.modifyLastAction(slot: "card_ask", value: "requestedCard")
-//
-//                    //model!.modifyLastAction(slot: "current_player", value: giver.player)
-//
-//                    asker.model.modifyLastAction(slot: "current_player", value: giver.playerName)
-//                    asker.model.modifyLastAction(slot: "state", value: "start")
-//                }
                 giver.model.modifyLastAction(slot: "card_ask", value: requestedCard.prefix(1).uppercased()) //
                 giver.model.modifyLastAction(slot: "current_player", value: asker.playerName) //whoever has the turn right now
                 giver.model.modifyLastAction(slot: "state", value: "start")
-                giver.model.modifyLastAction(slot: "result", value: "gofish")
-//                giver.model.modifyLastAction(slot: "state", value: "gofish")
                 goFishBtnOutlet.isHidden = true
                 AskBtnOutlet.isHidden = true
                 deckOutletBtn.isUserInteractionEnabled = false
@@ -584,14 +554,13 @@ class ViewController: UIViewController {
                 deckOutletBtn.setImage(UIImage(named: randomCard), for: .normal)
                 deck.remove(at: deck.firstIndex(of: randomCard)!)
                 asker.cards.append(randomCard)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0){ [self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0){ [self] in
                     deckOutletBtn.setImage(UIImage(named: "red_back"), for: .normal)
                     self.setupDisplay()
                     self.removeBooksFromHand()
                     self.setupDisplay()
                     asker.icon?.setBackgroundImage(UIImage(systemName: "person.circle"), for: .normal)
                     startPlay(asker1: giver, giver1: asker)
-//                    return
                 }
             }
             else{
@@ -952,4 +921,3 @@ class ViewController: UIViewController {
 class CustomTapGestureRecognizer: UITapGestureRecognizer {
     var userTappedCard: String?
 }
-
