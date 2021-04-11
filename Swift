@@ -519,8 +519,19 @@ class ViewController: UIViewController {
                 self.startPlay(asker1: asker, giver1: giver)
 //                return
             }
+            //The human is asking and is successful
             if(asker.playerIsHuman){
-                giver.model.modifyLastAction(slot: "state", value: "succeed")
+                if (giver.model.lastAction(slot: "state") == "wait_memorize"){
+                    giver.model.modifyLastAction(slot: "card_ask", value: "requestedCard")
+                    giver.model.modifyLastAction(slot: "current_player", value: asker.playerName)
+                    giver.model.modifyLastAction(slot: "state", value: "wait_memorize")
+                }
+            }
+            //This is when the model is asking and is succesful
+            else{
+                if (asker.model.lastAction(slot: "state") == "ask") {
+                    asker.model.modifyLastAction(slot: "state", value: "succeed")
+                }
             }
         }
         else{
