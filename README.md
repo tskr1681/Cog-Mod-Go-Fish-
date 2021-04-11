@@ -1,5 +1,5 @@
 # This is the Github repository for the Go Fish app
-Cognitive Modelling: Complex Behaviour
+Cognitive Modelling: Complex Behaviour. Group 5
 
 
 Authors:
