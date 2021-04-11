@@ -1,6 +1,7 @@
 # This is the Github repository for the Go Fish app
 Cognitive Modelling: Complex Behaviour
-//
+
+
 Authors:
 Sai Krishna (s3585085),
 Wenshu Lou (s4417968),
