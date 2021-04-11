@@ -1,7 +1,7 @@
 # This is the Github repository for the Go Fish app
 The authors are:
-Sai Krishna (s3585085)
-Wenshu Lou (s4417968)
+Sai Krishna (s3585085),
+Wenshu Lou (s4417968),
 Cedric Fekken (s2400529)
 
 *This will be a description of how to run it from Krishna because he has the laptop*
