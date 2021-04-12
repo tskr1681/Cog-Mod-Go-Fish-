@@ -8,7 +8,7 @@
 ;;; no need to choose player
 
 (set-all-baselevels -100 10) ;; time offset and number of references
-(sgp :rt -2.5)
+
 
 (p start-retrieve-state-first ;;; retrive state from action module
 	=goal>
